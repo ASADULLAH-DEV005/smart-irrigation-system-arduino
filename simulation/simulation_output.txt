@@ -1,0 +1,42 @@
+=============================================
+  Smart Automated Irrigation System Starting 
+  Author: Abbas Khan                         
+=============================================
+System initialized in safe state. Starting monitoring.
+TIME: 2s | STATUS UPDATE:
+  - Zone 1 (Tomatoes): Raw=840 | Moisture=2% | Relay=OFF
+  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=OFF
+---------------------------------------------
+[ACTION] Soil dry (2%). Turning ON pump for Zone 1 (Tomatoes)
+[ACTION] Soil dry (3%). Turning ON pump for Zone 2 (Herbs)
+TIME: 5s | STATUS UPDATE:
+  - Zone 1 (Tomatoes): Raw=840 | Moisture=2% | Relay=ON
+  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=ON
+---------------------------------------------
+[ACTION] Target moisture reached (64%). Turning OFF pump for Zone 1 (Tomatoes)
+TIME: 8s | STATUS UPDATE:
+  - Zone 1 (Tomatoes): Raw=510 | Moisture=64% | Relay=OFF
+  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=ON
+---------------------------------------------
+TIME: 11s | STATUS UPDATE:
+  - Zone 1 (Tomatoes): Raw=560 | Moisture=54% | Relay=OFF
+  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=ON
+---------------------------------------------
+TIME: 14s | STATUS UPDATE:
+  - Zone 1 (Tomatoes): Raw=620 | Moisture=43% | Relay=OFF
+  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=ON
+---------------------------------------------
+[SAFETY] Max run time exceeded for Zone 2 (Herbs). Pump stopped to prevent flooding.
+TIME: 17s | STATUS UPDATE:
+  - Zone 1 (Tomatoes): Raw=680 | Moisture=32% | Relay=OFF
+  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=OFF [SAFETY TRIPPED]
+---------------------------------------------
+TIME: 20s | STATUS UPDATE:
+  - Zone 1 (Tomatoes): Raw=845 | Moisture=1% | Relay=OFF
+  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=OFF [SAFETY TRIPPED]
+---------------------------------------------
+[ACTION] Soil dry (1%). Turning ON pump for Zone 1 (Tomatoes)
+TIME: 23s | STATUS UPDATE:
+  - Zone 1 (Tomatoes): Raw=845 | Moisture=1% | Relay=ON
+  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=OFF [SAFETY TRIPPED]
+---------------------------------------------

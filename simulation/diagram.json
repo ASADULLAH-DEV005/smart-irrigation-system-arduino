@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "author": "Abbas Khan",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 120, "left": 100, "attrs": {} },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_zone1",
+      "top": 30,
+      "left": -120,
+      "attrs": { "label": "Soil Moisture Zone 1" }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_zone2",
+      "top": 180,
+      "left": -120,
+      "attrs": { "label": "Soil Moisture Zone 2" }
+    },
+    {
+      "type": "wokwi-relay-module",
+      "id": "relay1",
+      "top": 40,
+      "left": 450,
+      "attrs": { "label": "Pump Zone 1 Relay" }
+    },
+    {
+      "type": "wokwi-relay-module",
+      "id": "relay2",
+      "top": 200,
+      "left": 450,
+      "attrs": { "label": "Pump Zone 2 Relay" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_zone1",
+      "top": 40,
+      "left": 620,
+      "attrs": { "color": "blue", "label": "Zone 1 Pump Run" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_zone2",
+      "top": 200,
+      "left": 620,
+      "attrs": { "color": "blue", "label": "Zone 2 Pump Run" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 90,
+      "left": 620,
+      "attrs": { "value": "330" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 250,
+      "left": 620,
+      "attrs": { "value": "330" }
+    }
+  ],
+  "connections": [
+    [ "uno:5V", "pot_zone1:VCC", "red", [ "v-20", "h-220" ] ],
+    [ "uno:GND.1", "pot_zone1:GND", "black", [ "v-30", "h-230" ] ],
+    [ "pot_zone1:SIG", "uno:A0", "green", [ "v30", "h100" ] ],
+
+    [ "uno:5V", "pot_zone2:VCC", "red", [ "v-20", "h-220" ] ],
+    [ "uno:GND.1", "pot_zone2:GND", "black", [ "v-30", "h-230" ] ],
+    [ "pot_zone2:SIG", "uno:A1", "green", [ "v-20", "h100" ] ],
+
+    [ "uno:5V", "relay1:VCC", "red", [ "v-40", "h240" ] ],
+    [ "uno:GND.2", "relay1:GND", "black", [ "v-30", "h230" ] ],
+    [ "uno:7", "relay1:IN", "orange", [ "v-10", "h180" ] ],
+
+    [ "uno:5V", "relay2:VCC", "red", [ "v-40", "h240" ] ],
+    [ "uno:GND.2", "relay2:GND", "black", [ "v-30", "h230" ] ],
+    [ "uno:8", "relay2:IN", "purple", [ "v10", "h180" ] ],
+
+    [ "relay1:NO", "led_zone1:A", "blue", [ "h20" ] ],
+    [ "relay1:COM", "uno:5V", "red", [ "v-20", "h-260" ] ],
+    [ "led_zone1:C", "r1:1", "black", [ "v10" ] ],
+    [ "r1:2", "uno:GND.3", "black", [ "v20", "h-260" ] ],
+
+    [ "relay2:NO", "led_zone2:A", "blue", [ "h20" ] ],
+    [ "relay2:COM", "uno:5V", "red", [ "v-20", "h-260" ] ],
+    [ "led_zone2:C", "r2:1", "black", [ "v10" ] ],
+    [ "r2:2", "uno:GND.3", "black", [ "v20", "h-260" ] ]
+  ],
+  "dependencies": {}
+}
