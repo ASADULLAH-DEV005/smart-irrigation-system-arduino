@@ -2,22 +2,22 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform: Arduino](https://img.shields.io/badge/Platform-Arduino%20Uno-blue.svg)](https://www.arduino.cc/)
-[![Simulator: Wokwi](https://img.shields.io/badge/Simulated%20In-Wokwi-green.svg)](https://wokwi.com)
+[![Simulator: Wokwi](https://img.shields.io/badge/Simulator-Wokwi%20Ready-green.svg)](https://wokwi.com)
 
-An automated two-zone irrigation controller built on the ATmega328P microcontroller. The system samples soil moisture in real time, applies sample averaging to filter electrical noise, and switches water pump relays using hysteresis control to prevent contact chatter. It also includes safety run-time cutoffs and cool-down timers to protect against pump burnout and pipe leaks.
+An automated two-zone irrigation controller designed for the ATmega328P microcontroller (Arduino Uno / Nano). The firmware samples soil moisture across two separate zones, averages successive ADC readings to filter electrical noise, and switches water pump relays using hysteresis control to prevent rapid contact cycling. It also includes safety cutoffs for continuous pump runtime and enforced cooldown intervals.
 
-> **Testing status**: I do not currently have physical Arduino hardware on my desk, so this entire system was designed, simulated, and tested using the **Wokwi** online microcontroller simulator. All circuit schematics, serial telemetry logs, and test results below were recorded directly from simulator runs. If you have physical components, I have added wiring instructions and a marked placeholder section below for physical build photos.
+> **Hardware & Testing Status**: I do not have physical Arduino hardware on my desk, and `arduino-cli` is not installed in this environment. The circuit schematic and firmware are prepared and structured for the **Wokwi** online microcontroller simulator. The test cases in `tests/test_plan.md` define the full verification procedure and are currently marked as **NOT RUN** until executed in an interactive simulator session or on hardware.
 
 ---
 
 ## Features
-- **Multi-Zone Support**: Independently monitors and waters two distinct plant zones (e.g. Zone 1: Tomatoes, Zone 2: Herbs) using an array of zone configuration structs.
+- **Multi-Zone Architecture**: Manages two independent plant zones (e.g. Zone 1: Tomatoes, Zone 2: Herbs) with separate pin assignments, calibration thresholds, and timers.
 - **Hysteresis Control**: Prevents rapid relay flickering by maintaining a deadband between turn-on and turn-off moisture levels.
-- **Noise Reduction**: Averages five successive ADC samples per channel with settle delays to prevent multiplexer cross-talk.
-- **Safety Run-Time Limiter**: Shuts off any pump that runs continuously for longer than 15 seconds (configurable for field use).
-- **Enforced Rest Period**: Mandates an 8-second cooldown between watering cycles to allow water to percolate into soil before re-measuring.
-- **Active-LOW Relay Compatibility**: Configurable logic flag to support standard optocoupled relay modules.
-- **Distributed Architecture Option**: Includes companion firmware for a two-node distributed setup where a sensor node transmits UART packets to a central relay control node.
+- **Noise Filtering**: Averages five successive ADC samples per channel with settle delays to reduce analog multiplexer noise.
+- **Safety Run-Time Limiter**: Shuts off any pump that runs continuously for longer than 15 seconds (protects against pipe leaks and dry reservoirs).
+- **Enforced Rest Period**: Mandates an 8-second cooldown between watering cycles so water can percolate into soil before re-measuring.
+- **Active-LOW Relay Flag**: Configurable logic flag to support standard optocoupled relay modules.
+- **Distributed Architecture Option**: Includes companion firmware for a two-node distributed setup where a sensor node sends UART packets to a central relay control node.
 
 ---
 
@@ -25,8 +25,8 @@ An automated two-zone irrigation controller built on the ATmega328P microcontrol
 
 | Component | Quantity | Purpose |
 | :--- | :--- | :--- |
-| Arduino Uno Rev3 (or Nano) | 1 | Main microcontroller unit (ATmega328P) |
-| Soil Moisture Sensors | 2 | Analog moisture probes (simulated with 10k potentiometers in Wokwi) |
+| Arduino Uno Rev3 (or Nano) | 1 | Microcontroller unit (ATmega328P) |
+| Soil Moisture Sensors | 2 | Analog moisture probes (modeled with 10k potentiometers in Wokwi) |
 | 2-Channel 5V Relay Module | 1 | Optocoupled switches for low-voltage pump circuits |
 | 12V DC Submersible Water Pumps | 2 | Actuators (visualized with LEDs in simulator) |
 | 1N4007 Diodes | 2 | Flyback diodes across pump terminals to suppress inductive spikes |
@@ -76,107 +76,83 @@ Full notes on isolation jumpers and ground loops are in [docs/wiring_table.md](d
 
 ---
 
-## How the Control Logic Works
+## Control Logic & Hysteresis
 
-### Simple Explanation of Hysteresis
-If you use a single threshold (for example: turn pump ON below 40%, and OFF above 40%), sensor noise will cause the relay to click on and off rapidly whenever moisture sits right at 39-41%. This rapid clicking wears out mechanical relays within days.
+### How Hysteresis Prevents Relay Chatter
+If a system uses a single threshold (such as: pump ON below 40%, pump OFF above 40%), sensor noise will cause the relay to click on and off rapidly whenever moisture hovers right around 39% - 41%.
 
-To solve this, I used **hysteresis**:
+To prevent this:
 1. When soil dries out and drops below **30%**, the pump turns **ON**.
 2. As water soaks the soil, moisture rises. The pump stays ON through 35%, 45%, and 55%.
 3. Only when moisture reaches or exceeds **60%** does the pump turn **OFF**.
 4. Once turned OFF, the pump will not turn on again until moisture falls all the way back below **30%**.
 
-Between 30% and 60%, the pump stays in whatever state it was already in.
+Between 30% and 60%, the pump stays in its previous state.
 
 ### Safety Guards
-- **Max continuous run time**: If a pump runs for 15 seconds without the soil hitting 60% (which happens if a pipe disconnected or the reservoir ran dry), the system cuts power and flags a safety trip.
-- **Cooldown timer**: After turning off, the pump must rest for at least 8 seconds before it can run again, giving water time to soak through the root zone.
+- **Max continuous run time**: If a pump runs for 15 seconds without reaching cutoff moisture, the controller turns the relay OFF and enters a safety lockout.
+- **Cooldown timer**: After turning off, the pump must rest for at least 8 seconds before it can run again, allowing water to percolate into the root zone.
 
 ---
 
-## How to Run in Wokwi Simulator
+## How to Simulate in Wokwi
 
-1. Go to [wokwi.com](https://wokwi.com) and start a new Arduino Uno project.
-2. Replace `sketch.ino` with the code in [`firmware/irrigation_system/irrigation_system.ino`](firmware/irrigation_system/irrigation_system.ino).
-3. Replace `diagram.json` with the JSON in [`simulation/diagram.json`](simulation/diagram.json).
-4. Click **Start Simulation**.
-5. Open the Serial Monitor pane at 9600 baud.
-6. Rotate the potentiometers to simulate dry soil (high voltage / clockwise) or soaked soil (low voltage / counter-clockwise).
-
-### Verified Simulator Output Sample
-
-```text
-=============================================
-  Smart Automated Irrigation System Starting 
-  Author: Abbas Khan                         
-=============================================
-System initialized in safe state. Starting monitoring.
-TIME: 2s | STATUS UPDATE:
-  - Zone 1 (Tomatoes): Raw=840 | Moisture=2% | Relay=OFF
-  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=OFF
----------------------------------------------
-[ACTION] Soil dry (2%). Turning ON pump for Zone 1 (Tomatoes)
-[ACTION] Soil dry (3%). Turning ON pump for Zone 2 (Herbs)
-TIME: 5s | STATUS UPDATE:
-  - Zone 1 (Tomatoes): Raw=840 | Moisture=2% | Relay=ON
-  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=ON
----------------------------------------------
-[ACTION] Target moisture reached (64%). Turning OFF pump for Zone 1 (Tomatoes)
-TIME: 8s | STATUS UPDATE:
-  - Zone 1 (Tomatoes): Raw=510 | Moisture=64% | Relay=OFF
-  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=ON
----------------------------------------------
-[SAFETY] Max run time exceeded for Zone 2 (Herbs). Pump stopped to prevent flooding.
-TIME: 17s | STATUS UPDATE:
-  - Zone 1 (Tomatoes): Raw=680 | Moisture=32% | Relay=OFF
-  - Zone 2 (Herbs): Raw=835 | Moisture=3% | Relay=OFF [SAFETY TRIPPED]
----------------------------------------------
-```
+1. Open [wokwi.com](https://wokwi.com) in your browser.
+2. Choose **Arduino Uno**.
+3. Replace the code in `sketch.ino` with [`firmware/irrigation_system/irrigation_system.ino`](firmware/irrigation_system/irrigation_system.ino).
+4. Switch to the `diagram.json` tab and paste the contents of [`simulation/diagram.json`](simulation/diagram.json).
+5. Click **Start Simulation**.
+6. Open the Serial Monitor pane at 9600 baud.
+7. Rotate the potentiometers to simulate dry soil (clockwise / higher voltage) and wet soil (counter-clockwise / lower voltage).
 
 ---
 
-## Test Results
+## Test Specification
 
-These test cases were executed step by step in Wokwi. Full test descriptions and logs are in [tests/test_plan.md](tests/test_plan.md).
+The test plan in [tests/test_plan.md](tests/test_plan.md) outlines 10 verification test cases:
 
-| Test ID | Scenario | Expected | Result |
+| Test ID | Scenario | Expected Behavior | Status |
 | :--- | :--- | :--- | :--- |
-| **TC-01** | Safe Boot State | Both relays initialize open / OFF | **PASS** |
-| **TC-02** | Zone 1 Dry Soil | Pump 1 turns ON when moisture $< 30\%$ | **PASS** |
-| **TC-03** | Zone 2 Dry Soil | Pump 2 turns ON when moisture $< 35\%$ | **PASS** |
-| **TC-04** | Hysteresis Stability | No relay clicking while moisture sits at $45\%$ | **PASS** |
-| **TC-05** | Wet Soil Cutoff | Pump 1 turns OFF when moisture $\ge 60\%$ | **PASS** |
-| **TC-06** | Reverse Hysteresis | Pump stays OFF as moisture drops from $60\%$ to $32\%$ | **PASS** |
-| **TC-07** | Max Run Timeout | Pump 2 forced OFF after 15s dry condition | **PASS** |
-| **TC-08** | Minimum Rest Time | Pump cannot re-engage before 8s cooldown expires | **PASS** |
-| **TC-09** | Sensor Disconnect | Floating input ($> 1010$ ADC) trips fault and locks pump OFF | **PASS** |
-| **TC-10** | Zone Independence | Zone 1 waters while Zone 2 rests without cross-talk | **PASS** |
+| **TC-01** | Safe Boot State | Both relays initialize open / OFF | NOT RUN |
+| **TC-02** | Zone 1 Dry Soil | Pump 1 turns ON when moisture $< 30\%$ | NOT RUN |
+| **TC-03** | Zone 2 Dry Soil | Pump 2 turns ON when moisture $< 35\%$ | NOT RUN |
+| **TC-04** | Hysteresis Stability | No relay clicking while moisture sits at $45\%$ | NOT RUN |
+| **TC-05** | Wet Soil Cutoff | Pump 1 turns OFF when moisture $\ge 60\%$ | NOT RUN |
+| **TC-06** | Reverse Hysteresis | Pump stays OFF as moisture drops from $60\%$ to $32\%$ | NOT RUN |
+| **TC-07** | Max Run Timeout | Pump 2 forced OFF after 15s continuous run | NOT RUN |
+| **TC-08** | Minimum Rest Time | Pump cannot re-engage before 8s cooldown expires | NOT RUN |
+| **TC-09** | Sensor Disconnect | Floating input ($> 1010$ ADC) trips fault and locks pump OFF | NOT RUN |
+| **TC-10** | Zone Independence | Zone 1 waters while Zone 2 rests without cross-talk | NOT RUN |
 
 ---
 
-## Real Problems and Fixes (From Development)
-- **Active-LOW Relay modules**: Most 5V relay modules energize when the pin goes LOW. At first, my logic was inverted and the pump ran when soil was wet. I added a dedicated `RELAY_ACTIVE_LOW` flag and a helper function to keep polarity clean.
-- **Relay chattering**: When moisture hovered right at the setpoint, the relay switched every cycle. Adding the hysteresis window solved this completely.
-- **ADC multiplexer ghosting**: Reading pin A0 right after A1 produced slight voltage bleed from the previous channel. Adding a 5-sample average with a 200µs settle delay between conversions fixed the jitter.
+## Design Considerations & Common Issues to Watch For
 
-See [docs/debug_log.md](docs/debug_log.md) for detailed notes.
+1. **Active-LOW Relay polarity**: Most commercial 5V relay modules trigger on LOW. Ensure `RELAY_ACTIVE_LOW` is set to `true` so the relay is not energizing on startup.
+2. **Sensor electrolysis**: Continuous DC current across resistive soil probes corrodes copper traces within weeks. For physical deployments, use capacitive probes (Capacitive v1.2) or power sensor VCC from an Arduino digital pin only during measurements.
+3. **Power supply brownouts**: DC pumps draw high stall currents on startup. Always power pumps from an external 12V 2A DC adapter rather than the Arduino 5V regulator.
+4. **Flyback voltage spikes**: Always put a 1N4007 diode across pump motor terminals in reverse bias to absorb inductive spikes when the relay disconnects.
+
+See [docs/debug_log.md](docs/debug_log.md) for full engineering notes.
 
 ---
 
 ## Physical Hardware Photos (Placeholder)
 <!--
-If you build this with physical hardware, take photos of your breadboard, relay board, and sensor assembly, put the image files in docs/images/, and uncomment this section:
-![Physical Breadboard Setup](docs/images/physical_circuit.jpg)
+When building this on a physical bench:
+1. Photograph your breadboard, Arduino, relay module, and sensors.
+2. Place photos in docs/images/.
+3. Uncomment the line below:
+![Physical Setup](docs/images/physical_circuit.jpg)
 -->
-*Currently simulated in Wokwi. Physical build photos will be added when physical components are deployed.*
+*Currently prepared for simulation. Physical build photos will be added when hardware is deployed.*
 
 ---
 
 ## Future Improvements
-- Add an I2C 16x2 LCD display to view real-time moisture percentages and pump statuses without connecting a laptop.
-- Port the firmware to an ESP32 or ESP8266 to publish telemetry over MQTT to Home Assistant or Adafruit IO.
-- Add an optical or tipping-bucket rain sensor to skip irrigation cycles automatically if rain is detected.
+- Add an I2C 16x2 LCD display to view real-time moisture percentages and relay status without a PC.
+- Port firmware to an ESP32 or ESP8266 to transmit MQTT telemetry to Home Assistant or Adafruit IO.
+- Add an optical or tipping-bucket rain sensor to skip irrigation cycles automatically when rain is detected.
 - Implement an SD card datalogger module for long-term soil moisture trend recording.
 
 ---
