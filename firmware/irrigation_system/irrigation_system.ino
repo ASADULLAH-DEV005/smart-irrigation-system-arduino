@@ -1,6 +1,6 @@
 /*
  * Smart Automated Irrigation System - Single Node Controller
- * Author: Abbas Khan
+ * Author: Asad
  * Target: Arduino Uno / Nano (ATmega328P)
  *
  * Description:
@@ -190,7 +190,7 @@ void setup() {
 
   Serial.println(F("============================================="));
   Serial.println(F("  Smart Automated Irrigation System Starting "));
-  Serial.println(F("  Author: Abbas Khan                         "));
+  Serial.println(F("  Author: Asad                         "));
   Serial.println(F("============================================="));
 
   for (int i = 0; i < NUM_ZONES; i++) {

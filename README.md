@@ -158,7 +158,7 @@ When building this on a physical bench:
 ---
 
 ## Author
-- **Abbas Khan** - [GitHub Profile](https://github.com/ASADULLAH-DEV005)
+- **Asad** - [GitHub Profile](https://github.com/ASADULLAH-DEV005)
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

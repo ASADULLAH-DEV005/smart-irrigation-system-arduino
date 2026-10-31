@@ -1,6 +1,6 @@
 /*
  * Smart Automated Irrigation System - Distributed Control Node
- * Author: Abbas Khan
+ * Author: Asad
  * Target: Arduino Uno / Nano (ATmega328P)
  *
  * Description:
@@ -154,7 +154,7 @@ void setup() {
 
   Serial.println(F("============================================="));
   Serial.println(F("  Smart Irrigation Distributed Control Node "));
-  Serial.println(F("  Author: Abbas Khan                         "));
+  Serial.println(F("  Author: Asad                         "));
   Serial.println(F("============================================="));
 }
 

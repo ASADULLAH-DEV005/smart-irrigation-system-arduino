@@ -1,6 +1,6 @@
 /*
  * Smart Automated Irrigation System - Distributed Sensor Node
- * Author: Abbas Khan
+ * Author: Asad
  * Target: Arduino Uno / Nano (ATmega328P)
  *
  * Description:
