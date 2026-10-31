@@ -1,0 +1,15 @@
+# Arduino / PlatformIO
+.pio/
+.vscode/
+build/
+*.hex
+*.bin
+*.elf
+
+# Simulator cache
+.wokwi/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
